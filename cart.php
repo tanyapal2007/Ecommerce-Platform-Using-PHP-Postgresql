@@ -6,302 +6,222 @@ if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
-include __DIR__ . "/config/database.php";
+require_once __DIR__ . "/config/database.php";
 
-if (!isset($_SESSION['cart'])) {
-    $_SESSION['cart'] = [];
+/* =========================================
+   CHECK LOGIN
+========================================= */
+
+if (!isset($_SESSION['user_id']) || empty($_SESSION['user_id'])) {
+    header("Location: login.php");
+    exit;
 }
+
+$user_id = (int) $_SESSION['user_id'];
 
 
 /* =========================================
-   ADD PRODUCT TO CART - AJAX
+   AJAX ACTIONS
 ========================================= */
 
-if (
-    isset($_GET['action']) &&
-    $_GET['action'] === 'add' &&
-    isset($_GET['product_id'])
-) {
+$action = $_GET['action'] ?? '';
+$product_id = isset($_GET['product_id'])
+    ? (int) $_GET['product_id']
+    : 0;
 
-    $product_id = (int) $_GET['product_id'];
 
-    if ($product_id > 0) {
+/* =========================================
+   INCREASE QUANTITY
+========================================= */
+/* =========================================
+   INCREASE QUANTITY
+========================================= */
 
-        /* GET PRODUCT */
+if ($action === 'increase' && $product_id > 0) {
 
-        $sql = "
-            SELECT
-                p.product_id,
-                p.product_name,
-                p.product_code,
-                p.stock_quantity
-            FROM products p
-            WHERE p.product_id = :product_id
-              AND p.status = 1
-            LIMIT 1
+    /* Get current quantity */
+
+    $sql = "
+        SELECT quantity
+        FROM cart
+        WHERE user_id = :user_id
+          AND product_id = :product_id
+        LIMIT 1
+    ";
+
+    $stmt = $conn->prepare($sql);
+
+    $stmt->execute([
+        ':user_id' => $user_id,
+        ':product_id' => $product_id
+    ]);
+
+    $item = $stmt->fetch(PDO::FETCH_ASSOC);
+
+
+    if (!$item) {
+
+        echo json_encode([
+            'success' => false,
+            'message' => 'Product not found in cart'
+        ]);
+
+        exit;
+    }
+
+
+    /* Increase quantity */
+
+    $new_quantity = (int)$item['quantity'] + 1;
+
+
+    $update_sql = "
+        UPDATE cart
+        SET
+            quantity = :quantity,
+            updated_at = CURRENT_TIMESTAMP
+        WHERE user_id = :user_id
+          AND product_id = :product_id
+    ";
+
+    $update_stmt = $conn->prepare($update_sql);
+
+    $update_stmt->execute([
+        ':quantity' => $new_quantity,
+        ':user_id' => $user_id,
+        ':product_id' => $product_id
+    ]);
+
+
+    echo json_encode([
+        'success' => true,
+        'quantity' => $new_quantity
+    ]);
+
+    exit;
+}
+
+/* =========================================
+   DECREASE QUANTITY
+========================================= */
+
+/* =========================================
+   DECREASE QUANTITY
+========================================= */
+
+if ($action === 'decrease' && $product_id > 0) {
+
+    /* Get current quantity */
+
+    $sql = "
+        SELECT quantity
+        FROM cart
+        WHERE user_id = :user_id
+          AND product_id = :product_id
+        LIMIT 1
+    ";
+
+    $stmt = $conn->prepare($sql);
+
+    $stmt->execute([
+        ':user_id' => $user_id,
+        ':product_id' => $product_id
+    ]);
+
+    $item = $stmt->fetch(PDO::FETCH_ASSOC);
+
+
+    if (!$item) {
+
+        echo json_encode([
+            'success' => false,
+            'message' => 'Product not found in cart'
+        ]);
+
+        exit;
+    }
+
+
+    $current_quantity = (int)$item['quantity'];
+
+
+    /* If quantity is 1, remove product */
+
+    if ($current_quantity <= 1) {
+
+        $delete_sql = "
+            DELETE FROM cart
+            WHERE user_id = :user_id
+              AND product_id = :product_id
         ";
 
-        $stmt = $conn->prepare($sql);
+        $delete_stmt = $conn->prepare($delete_sql);
 
-        $stmt->execute([
+        $delete_stmt->execute([
+            ':user_id' => $user_id,
             ':product_id' => $product_id
         ]);
 
-        $product = $stmt->fetch(PDO::FETCH_ASSOC);
 
+        echo json_encode([
+            'success' => true,
+            'removed' => true,
+            'quantity' => 0
+        ]);
 
-        if ($product) {
-
-            /* GET SELLING PRICE */
-
-            $price_sql = "
-                SELECT selling_price
-                FROM product_prices
-                WHERE product_id = :product_id
-                  AND status = 1
-                ORDER BY price_id DESC
-                LIMIT 1
-            ";
-
-            $price_stmt = $conn->prepare($price_sql);
-
-            $price_stmt->execute([
-                ':product_id' => $product_id
-            ]);
-
-            $price_row = $price_stmt->fetch(PDO::FETCH_ASSOC);
-
-            $price = 0;
-
-            if ($price_row) {
-                $price = (float) $price_row['selling_price'];
-            }
-
-            //         /* INSERT PRODUCT INTO CART TABLE */
-
-            //         $cart_sql = "
-            //             INSERT INTO cart
-            //             (
-            //                 product_id,
-            //                 product_name,
-            //                 product_code,
-            //                 price,
-            //                 quantity
-            //             )
-            //             VALUES
-            //             (
-            //                 :product_id,
-            //                 :product_name,
-            //                 :product_code,
-            //                 :price,
-            //                 :quantity
-            //             )
-            //         ";
-
-            //         $cart_stmt = $conn->prepare($cart_sql);
-
-            //         $cart_stmt->execute([
-            //             ':product_id'   => $product['product_id'],
-            //             ':product_name' => $product['product_name'],
-            //             ':product_code' => $product['product_code'],
-            //             ':price'        => $price,
-            //             ':quantity'     => 1
-            //         ]);
-            //         /* IF PRODUCT ALREADY EXISTS */
-
-            //         if (isset($_SESSION['cart'][$product_id])) {
-
-            //             $_SESSION['cart'][$product_id]['quantity']++;
-            //         } else {
-
-            //             /* ADD NEW PRODUCT */
-
-            //             $_SESSION['cart'][$product_id] = [
-            //                 'product_id'   => $product['product_id'],
-            //                 'product_name' => $product['product_name'],
-            //                 'product_code' => $product['product_code'],
-            //                 'price'        => $price,
-            //                 'quantity'     => 1
-            //             ];
-            //         }
-        }
+        exit;
     }
 
-    ob_clean();
 
-    /* AJAX RESPONSE */
+    /* Decrease quantity */
 
-    header('Content-Type: application/json; charset=utf-8');
+    $new_quantity = $current_quantity - 1;
+
+
+    $update_sql = "
+        UPDATE cart
+        SET
+            quantity = :quantity,
+            updated_at = CURRENT_TIMESTAMP
+        WHERE user_id = :user_id
+          AND product_id = :product_id
+    ";
+
+    $update_stmt = $conn->prepare($update_sql);
+
+    $update_stmt->execute([
+        ':quantity' => $new_quantity,
+        ':user_id' => $user_id,
+        ':product_id' => $product_id
+    ]);
+
 
     echo json_encode([
         'success' => true,
-        'message' => 'Product added to cart',
-        'product_id' => $product_id,
-        'cart_count' => array_sum(
-            array_column($_SESSION['cart'], 'quantity')
-        )
+        'quantity' => $new_quantity
     ]);
 
     exit;
 }
-
-
 /* =========================================
-   INCREASE QUANTITY - AJAX
+   REMOVE PRODUCT
 ========================================= */
 
-/* =========================================
-   INCREASE QUANTITY - AJAX
-========================================= */
+if ($action === 'remove' && $product_id > 0) {
 
-if (
-    isset($_GET['action']) &&
-    $_GET['action'] === 'increase' &&
-    isset($_GET['product_id'])
-) {
+    $sql = "
+        DELETE FROM cart
+        WHERE user_id = :user_id
+          AND product_id = :product_id
+    ";
 
-    $product_id = (int) $_GET['product_id'];
+    $stmt = $conn->prepare($sql);
 
-    if (isset($_SESSION['cart'][$product_id])) {
-
-        $_SESSION['cart'][$product_id]['quantity']++;
-
-        $quantity = $_SESSION['cart'][$product_id]['quantity'];
-        $price = (float) $_SESSION['cart'][$product_id]['price'];
-
-        $item_total = $price * $quantity;
-    }
-
-    /* Recalculate subtotal */
-
-    $subtotal = 0;
-
-    foreach ($_SESSION['cart'] as $item) {
-
-        $subtotal +=
-            (float)$item['price'] *
-            (int)$item['quantity'];
-    }
-
-    $shipping = ($subtotal > 0) ? 3 : 0;
-    $grand_total = $subtotal + $shipping;
-
-    ob_clean();
-
-    header('Content-Type: application/json; charset=utf-8');
-
-    echo json_encode([
-        'success' => true,
-        'quantity' => $quantity ?? 0,
-        'item_total' => $item_total ?? 0,
-        'subtotal' => $subtotal,
-        'shipping' => $shipping,
-        'grand_total' => $grand_total
+    $stmt->execute([
+        ':user_id' => $user_id,
+        ':product_id' => $product_id
     ]);
 
-    exit;
-}
-
-/* =========================================
-   DECREASE QUANTITY - AJAX
-========================================= */
-
-/* =========================================
-   DECREASE QUANTITY - AJAX
-========================================= */
-
-if (
-    isset($_GET['action']) &&
-    $_GET['action'] === 'decrease' &&
-
-    isset($_GET['product_id'])
-) {
-
-    $product_id = (int) $_GET['product_id'];
-
-    if (isset($_SESSION['cart'][$product_id])) {
-
-        $_SESSION['cart'][$product_id]['quantity']--;
-
-        if ($_SESSION['cart'][$product_id]['quantity'] <= 0) {
-
-            unset($_SESSION['cart'][$product_id]);
-
-            ob_clean();
-
-            header('Content-Type: application/json; charset=utf-8');
-
-            echo json_encode([
-                'success' => true,
-                'removed' => true
-            ]);
-
-            exit;
-        }
-
-        $quantity = $_SESSION['cart'][$product_id]['quantity'];
-        $price = (float) $_SESSION['cart'][$product_id]['price'];
-
-        $item_total = $price * $quantity;
-    }
-
-    /* Recalculate subtotal */
-
-    $subtotal = 0;
-
-    foreach ($_SESSION['cart'] as $item) {
-
-        $subtotal +=
-            (float)$item['price'] *
-            (int)$item['quantity'];
-    }
-
-    $shipping = ($subtotal > 0) ? 3 : 0;
-    $grand_total = $subtotal + $shipping;
-
-    ob_clean();
-
-    header('Content-Type: application/json; charset=utf-8');
-
-    echo json_encode([
-        'success' => true,
-        'quantity' => $quantity ?? 0,
-        'item_total' => $item_total ?? 0,
-        'subtotal' => $subtotal,
-        'shipping' => $shipping,
-        'grand_total' => $grand_total
-    ]);
-
-    exit;
-}
-
-
-/* =========================================
-   REMOVE PRODUCT - AJAX
-========================================= */
-
-/* =========================================
-   REMOVE PRODUCT - AJAX
-========================================= */
-
-if (
-    isset($_GET['action']) &&
-    $_GET['action'] === 'remove' &&
-    isset($_GET['product_id'])
-) {
-
-    $product_id = (int) $_GET['product_id'];
-
-    if (isset($_SESSION['cart'][$product_id])) {
-
-        unset($_SESSION['cart'][$product_id]);
-    }
-
-    // Remove any unwanted output
-    ob_clean();
-
-    // Send JSON response
-    header('Content-Type: application/json; charset=utf-8');
 
     echo json_encode([
         'success' => true,
@@ -312,18 +232,74 @@ if (
     exit;
 }
 
+
+/* =========================================
+   GET CART PRODUCTS FROM DATABASE
+========================================= */
+
+$cart_sql = "
+    SELECT
+        c.cart_id,
+        c.product_id,
+        c.quantity,
+        c.price,
+
+        p.product_name,
+        p.product_code,
+        p.stock_quantity
+
+    FROM cart c
+
+    INNER JOIN products p
+        ON p.product_id = c.product_id
+
+    WHERE c.user_id = :user_id
+
+    ORDER BY c.cart_id DESC
+";
+
+
+$cart_stmt = $conn->prepare($cart_sql);
+
+$cart_stmt->execute([
+    ':user_id' => $user_id
+]);
+
+$cart_items = $cart_stmt->fetchAll(PDO::FETCH_ASSOC);
+
+
 /* =========================================
    CALCULATE TOTAL
 ========================================= */
 
 $subtotal = 0;
 
-foreach ($_SESSION['cart'] as $item) {
+foreach ($cart_items as $item) {
 
-    $price = (float) $item['price'];
-    $quantity = (int) $item['quantity'];
+    $quantity = (int)$item['quantity'];
 
-    $subtotal += $price * $quantity;
+    $price_sql = "
+        SELECT selling_price
+        FROM product_prices
+        WHERE product_id = :product_id
+          AND status = 1
+        ORDER BY price_id DESC
+        LIMIT 1
+    ";
+
+    $price_stmt = $conn->prepare($price_sql);
+
+    $price_stmt->execute([
+        ':product_id' => $item['product_id']
+    ]);
+
+    $price_row = $price_stmt->fetch(PDO::FETCH_ASSOC);
+
+    $unit_price = $price_row
+        ? (float)$price_row['selling_price']
+        : 0;
+
+    $subtotal += $unit_price * $quantity;
 }
 
 $shipping = ($subtotal > 0) ? 3 : 0;
@@ -331,7 +307,6 @@ $shipping = ($subtotal > 0) ? 3 : 0;
 $grand_total = $subtotal + $shipping;
 
 ?>
-
 
 <!DOCTYPE html>
 <html lang="en">
@@ -407,13 +382,34 @@ $grand_total = $subtotal + $shipping;
                     </thead>
 
 
-                    <?php if (!empty($_SESSION['cart'])) { ?>
+                    <?php if (!empty($cart_items)) { ?>
 
-                        <?php foreach ($_SESSION['cart'] as $item) { ?>
+                        <?php foreach ($cart_items as $item) { ?>
 
                             <?php
-                            $price = (float)$item['price'];
                             $quantity = (int)$item['quantity'];
+
+                            $unit_price_sql = "
+    SELECT selling_price
+    FROM product_prices
+    WHERE product_id = :product_id
+      AND status = 1
+    ORDER BY price_id DESC
+    LIMIT 1
+";
+
+                            $unit_price_stmt = $conn->prepare($unit_price_sql);
+
+                            $unit_price_stmt->execute([
+                                ':product_id' => $item['product_id']
+                            ]);
+
+                            $unit_price_row = $unit_price_stmt->fetch(PDO::FETCH_ASSOC);
+
+                            $price = $unit_price_row
+                                ? (float)$unit_price_row['selling_price']
+                                : 0;
+
                             $item_total = $price * $quantity;
                             ?>
 
@@ -535,8 +531,8 @@ $grand_total = $subtotal + $shipping;
                                 ₹<?php echo number_format($grand_total, 2); ?>
                             </p>
                         </div>
-                        <button class="btn btn-primary rounded-pill px-4 py-3 text-uppercase mb-4 ms-4"
-                            type="button">Proceed Checkout</button>
+                        <a class="btn btn-primary rounded-pill px-4 py-3 text-uppercase mb-4 ms-4"
+                            href="checkout.php">Proceed Checkout</a>
                     </div>
                 </div>
             </div>
@@ -623,145 +619,401 @@ $grand_total = $subtotal + $shipping;
     <script>
         document.addEventListener("DOMContentLoaded", function() {
 
-            document.querySelectorAll(".add-to-cart").forEach(function(button) {
+            /* =====================================================
+               QUANTITY + / -
+            ===================================================== */
+
+            document.querySelectorAll(".quantity-btn").forEach(function(button) {
 
                 button.addEventListener("click", function() {
 
-                    const productId = this.dataset.productId;
-                    const currentButton = this;
+                    const buttonElement = this;
 
-                    // Prevent multiple clicks while request is running
-                    currentButton.disabled = true;
+                    const action = buttonElement.dataset.action;
+                    const productId = buttonElement.dataset.productId;
 
-                    fetch("config/backend_cart.php?action=add&product_id=" + productId)
+                    const row = buttonElement.closest(".cart-row");
+
+                    const quantityInput =
+                        row.querySelector(".quantity-input");
+
+                    const priceElement =
+                        row.querySelector(".product-price");
+
+                    const itemTotalElement =
+                        row.querySelector(".item-total");
+
+
+                    /* Prevent double click */
+
+                    buttonElement.disabled = true;
+
+
+                    /* Call backend */
+
+                    fetch(
+                            "config/backend_cart.php?action=" +
+                            action +
+                            "&product_id=" +
+                            productId
+                        )
                         .then(response => response.json())
                         .then(data => {
 
                             console.log("Cart Response:", data);
 
-                            /* ==========================
-                               LOGIN REQUIRED
-                            ========================== */
 
-                            if (data.login_required) {
+                            buttonElement.disabled = false;
 
-                                currentButton.disabled = false;
 
-                                showLoginPopup();
+                            /* Error */
+
+                            if (!data.success) {
+
+                                alert(
+                                    data.message ||
+                                    "Unable to update cart."
+                                );
 
                                 return;
                             }
 
 
-                            /* ==========================
-                               PRODUCT ADDED
-                            ========================== */
+                            /* =================================================
+                               PRODUCT REMOVED
+                            ================================================= */
 
-                            if (data.success) {
+                            if (data.removed) {
 
-                                if (data.quantity > 1) {
+                                row.remove();
 
-                                    currentButton.innerHTML =
-                                        '<i class="fa fa-check me-2"></i> Added (' +
-                                        data.quantity +
-                                        ')';
+                                updateCartTotals();
 
-                                } else {
+                                checkEmptyCart();
 
-                                    currentButton.innerHTML =
-                                        '<i class="fa fa-check me-2"></i> Added';
-
-                                }
-
-                                currentButton.classList.add("added-cart");
-
-                                // Keep button disabled
-                                currentButton.disabled = false;
+                                return;
                             }
 
 
-                            /* ==========================
-                               ERROR
-                            ========================== */
-                            else {
+                            /* =================================================
+                               UPDATE QUANTITY
+                            ================================================= */
 
-                                currentButton.disabled = false;
+                            const quantity =
+                                parseInt(data.quantity);
 
-                                alert(data.message || "Something went wrong.");
-                            }
+                            quantityInput.value = quantity;
+
+
+                            /* =================================================
+                               GET UNIT PRICE
+                            ================================================= */
+
+                            const unitPrice =
+                                parseFloat(
+                                    priceElement.dataset.price
+                                );
+
+
+                            /* =================================================
+                               UPDATE ITEM TOTAL
+                            ================================================= */
+
+                            const itemTotal =
+                                unitPrice * quantity;
+
+                            itemTotalElement.innerHTML =
+                                "₹" + itemTotal.toFixed(2);
+
+
+                            /* =================================================
+                               UPDATE CART TOTALS
+                            ================================================= */
+
+                            updateCartTotals();
 
                         })
                         .catch(error => {
 
-                            console.error("Cart Error:", error);
+                            buttonElement.disabled = false;
 
-                            currentButton.disabled = false;
+                            console.error(
+                                "Cart Quantity Error:",
+                                error
+                            );
 
-                            alert("Something went wrong. Please try again.");
+                            alert(
+                                "Unable to update quantity."
+                            );
+
                         });
 
                 });
 
             });
 
+
+            /* =====================================================
+               REMOVE PRODUCT
+            ===================================================== */
+
+            document.querySelectorAll(".remove-cart").forEach(function(button) {
+
+                button.addEventListener("click", function() {
+
+                    const buttonElement = this;
+
+                    const productId =
+                        buttonElement.dataset.productId;
+
+                    const row =
+                        buttonElement.closest(".cart-row");
+
+
+                    /* Prevent double click */
+
+                    buttonElement.disabled = true;
+
+
+                    /* Call backend remove */
+
+                    fetch(
+                            "config/backend_cart.php?action=remove&product_id=" +
+                            productId
+                        )
+                        .then(response => response.json())
+                        .then(data => {
+
+                            console.log(
+                                "Remove Cart Response:",
+                                data
+                            );
+
+
+                            buttonElement.disabled = false;
+
+
+                            /* Error */
+
+                            if (!data.success) {
+
+                                alert(
+                                    data.message ||
+                                    "Unable to remove product."
+                                );
+
+                                return;
+                            }
+
+
+                            /* =================================================
+                               PRODUCT REMOVED SUCCESSFULLY
+                            ================================================= */
+
+                            if (data.removed) {
+
+                                /* Remove row from page */
+
+                                row.remove();
+
+
+                                /* Update totals */
+
+                                updateCartTotals();
+
+
+                                /* Check empty cart */
+
+                                checkEmptyCart();
+
+                            }
+
+                        })
+                        .catch(error => {
+
+                            buttonElement.disabled = false;
+
+                            console.error(
+                                "Remove Cart Error:",
+                                error
+                            );
+
+                            alert(
+                                "Unable to remove product."
+                            );
+
+                        });
+
+                });
+
+            });
+
+
+            /* =====================================================
+               UPDATE CART TOTALS
+            ===================================================== */
+
+            function updateCartTotals() {
+
+                let subtotal = 0;
+
+
+                document.querySelectorAll(".cart-row")
+                    .forEach(function(cartRow) {
+
+                        const quantityInput =
+                            cartRow.querySelector(".quantity-input");
+
+                        const priceElement =
+                            cartRow.querySelector(".product-price");
+
+
+                        if (!quantityInput || !priceElement) {
+                            return;
+                        }
+
+
+                        const quantity =
+                            parseInt(quantityInput.value) || 0;
+
+
+                        const price =
+                            parseFloat(
+                                priceElement.dataset.price
+                            ) || 0;
+
+
+                        subtotal +=
+                            price * quantity;
+
+                    });
+
+
+                /* =================================================
+                   SUBTOTAL
+                ================================================= */
+
+                document.getElementById("subtotal")
+                    .innerHTML =
+                    "₹" + subtotal.toFixed(2);
+
+
+                /* =================================================
+                   SHIPPING
+                ================================================= */
+
+                const shipping =
+                    subtotal > 0 ? 3 : 0;
+
+
+                document.getElementById("shipping")
+                    .innerHTML =
+                    "Flat rate: ₹" +
+                    shipping.toFixed(2);
+
+
+                /* =================================================
+                   GRAND TOTAL
+                ================================================= */
+
+                const grandTotal =
+                    subtotal + shipping;
+
+
+                document.getElementById("grand-total")
+                    .innerHTML =
+                    "₹" + grandTotal.toFixed(2);
+
+            }
+
+
+            /* =====================================================
+               CHECK EMPTY CART
+            ===================================================== */
+
+            function checkEmptyCart() {
+
+                const rows =
+                    document.querySelectorAll(".cart-row");
+
+
+                if (rows.length === 0) {
+
+                    location.reload();
+
+                }
+
+            }
+
         });
-        /* ==========================
-   SHOW LOGIN POPUP
-========================== */
+
+
+        /* =========================================================
+           SHOW LOGIN POPUP
+        ========================================================= */
 
         function showLoginPopup() {
 
-            const popup = document.getElementById("loginPopup");
+            const popup =
+                document.getElementById("loginPopup");
 
             if (popup) {
 
                 popup.style.display = "flex";
 
                 document.body.style.overflow = "hidden";
+
             }
+
         }
 
 
-        /* ==========================
+        /* =========================================================
            CLOSE LOGIN POPUP
-        ========================== */
+        ========================================================= */
 
         function closeLoginPopup() {
 
-            const popup = document.getElementById("loginPopup");
+            const popup =
+                document.getElementById("loginPopup");
 
             if (popup) {
 
                 popup.style.display = "none";
 
                 document.body.style.overflow = "";
+
             }
+
         }
 
 
-        /* ==========================
+        /* =========================================================
            GO TO LOGIN PAGE
-        ========================== */
+        ========================================================= */
 
         function goToLogin() {
 
             window.location.href = "login.php";
+
         }
 
 
-        /* ==========================
-           CLICK OUTSIDE POPUP
-        ========================== */
+        /* =========================================================
+           CLICK OUTSIDE LOGIN POPUP
+        ========================================================= */
 
-        document.getElementById("loginPopup")?.addEventListener("click", function(event) {
+        document
+            .getElementById("loginPopup")
+            ?.addEventListener("click", function(event) {
 
-            if (event.target === this) {
+                if (event.target === this) {
 
-                closeLoginPopup();
+                    closeLoginPopup();
 
-            }
+                }
 
-        });
+            });
     </script>
 </body>
 

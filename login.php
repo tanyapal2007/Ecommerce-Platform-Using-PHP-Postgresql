@@ -57,14 +57,14 @@ if (isset($_POST['generate_otp'])) {
     }
 
     /* ======================================
-       NEW USER
-    ====================================== */ else {
+   NEW USER
+====================================== */ else {
 
         $sql = "INSERT INTO users
-        (name, phone, role)
-        VALUES
-        (:name, :phone, 'customer')
-        RETURNING user_id";
+            (name, phone, role)
+            VALUES
+            (:name, :phone, 'user')
+            RETURNING user_id";
 
         $stmt = $conn->prepare($sql);
 
@@ -75,7 +75,6 @@ if (isset($_POST['generate_otp'])) {
 
         $user_id = $stmt->fetchColumn();
     }
-
 
     /* ======================================
        GENERATE OTP
@@ -290,7 +289,7 @@ if (isset($_POST['verify_otp'])) {
 
             if ($user['role'] === 'admin') {
 
-                header("Location: dashboard/index.php");
+                header("Location: dashboard/index3.php");
                 exit();
             } else {
 

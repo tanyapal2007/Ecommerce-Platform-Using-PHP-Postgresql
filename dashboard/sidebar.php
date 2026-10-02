@@ -28,11 +28,11 @@
             <div class="menu_section">
                 <h3>General</h3>
                 <ul class="nav side-menu">
-                    <li><a><i class="fa fa-home"></i> Home <span class="fa fa-chevron-down"></span></a>
+                    <li><a a href="index3.php"><i class="fa fa-home"></i> Home <span class="fa fa-chevron-down"></span></a>
                         <ul class="nav child_menu">
-                            <li><a href="index.php">Dashboard</a></li>
-                            <li><a href="index2.php">Dashboard2</a></li>
-                            <li><a href="index3.php">Dashboard3</a></li>
+                            <!-- <li><a href="index.php">Dashboard</a></li>
+                            <li><a href="index2.php">Dashboard2</a></li> -->
+                            <!-- <li><a href="index3.php">Dashboard3</a></li> -->
                         </ul>
                     </li>
                     <li><a><i class="fa fa-edit"></i> User Management <span class="fa fa-chevron-down"></span></a>
@@ -50,21 +50,22 @@
                             <li><a href="category-management.php">product_category</a></li>
                             <li><a href="product_subcategory.php">product_subcategory</a></li>
                             <li><a href="products.php">products</a></li>
-                            <li><a href="icons.php">product_rating</a></li>
-                            <li><a href="glyphicons.php">product_images</a></li>
+                            <!-- <li><a href="icons.php">product_rating</a></li>
+                            <li><a href="glyphicons.php">product_images</a></li> -->
                             <!-- <li><a href="widgets.php">product_prices</a></li> -->
                             <!-- <li><a href="invoice.php">Invoice</a></li>
                             <li><a href="inbox.php">Inbox</a></li>
                             <li><a href="calendar.php">Calendar</a></li> -->
                         </ul>
                     </li>
-                    <li><a><i class="fa fa-table"></i> Tables <span class="fa fa-chevron-down"></span></a>
+                    <li><a><i class="fa fa-table"></i> Orders <span class="fa fa-chevron-down"></span></a>
                         <ul class="nav child_menu">
-                            <li><a href="tables.php">Tables</a></li>
-                            <li><a href="tables_dynamic.php">Table Dynamic</a></li>
+                            <li><a href="order-charts.php">Carts</a></li>
+                            <li><a href="order-details.php">Orders</a></li>
+                            <li><a href="coupon-management.php">Coupons</a></li>
                         </ul>
                     </li>
-                    <li><a><i class="fa fa-bar-chart-o"></i> Data Presentation <span class="fa fa-chevron-down"></span></a>
+                    <!-- <li><a><i class="fa fa-bar-chart-o"></i> Data Presentation <span class="fa fa-chevron-down"></span></a>
                         <ul class="nav child_menu">
                             <li><a href="chartjs.php">Chart JS</a></li>
                             <li><a href="chartjs2.php">Chart JS2</a></li>
@@ -72,13 +73,13 @@
                             <li><a href="echarts.php">ECharts</a></li>
                             <li><a href="other_charts.php">Other Charts</a></li>
                         </ul>
-                    </li>
-                    <li><a><i class="fa fa-clone"></i>Layouts <span class="fa fa-chevron-down"></span></a>
+                    </li> -->
+                    <!-- <li><a><i class="fa fa-clone"></i>Layouts <span class="fa fa-chevron-down"></span></a>
                         <ul class="nav child_menu">
                             <li><a href="fixed_sidebar.php">Fixed Sidebar</a></li>
                             <li><a href="fixed_footer.php">Fixed Footer</a></li>
                         </ul>
-                    </li>
+                    </li> -->
                 </ul>
             </div>
             <div class="menu_section">
@@ -103,7 +104,7 @@
                             <li><a href="pricing_tables.php">Pricing Tables</a></li>
                         </ul>
                     </li>
-                    <li><a><i class="fa fa-sitemap"></i> Multilevel Menu <span class="fa fa-chevron-down"></span></a>
+                    <!-- <li><a><i class="fa fa-sitemap"></i> Multilevel Menu <span class="fa fa-chevron-down"></span></a>
                         <ul class="nav child_menu">
                             <li><a href="#level1_1">Level One</a>
                             <li><a>Level One<span class="fa fa-chevron-down"></span></a>
@@ -119,7 +120,7 @@
                             <li><a href="#level1_2">Level One</a>
                             </li>
                         </ul>
-                    </li>
+                    </li> -->
                     <li><a href="../index.php" target="_blank"><i class="fa fa-laptop"></i> View Website</a></li>
                 </ul>
             </div>

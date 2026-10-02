@@ -1323,8 +1323,6 @@ if (!empty($products)) {
                     const productId = this.dataset.productId;
                     const currentButton = this;
 
-                    console.log("Product ID:", productId);
-
                     if (!productId) {
                         console.error("Product ID is missing");
                         return;
@@ -1343,44 +1341,52 @@ if (!empty($products)) {
                             const text = await response.text();
 
                             console.log("Raw Backend Response:", text);
-                            console.log("HTTP Status:", response.status);
 
                             let data;
 
                             try {
                                 data = JSON.parse(text);
                             } catch (error) {
-                                console.error("Invalid JSON Response:", text);
+                                console.error("Invalid JSON:", text);
                                 throw new Error("Backend returned invalid JSON");
                             }
 
-                            return {
-                                ok: response.ok,
-                                data: data
-                            };
+                            return data;
                         })
-                        .then(function(result) {
-
-                            const data = result.data;
+                        .then(function(data) {
 
                             console.log("Cart Response:", data);
 
                             /*
                              * LOGIN REQUIRED
                              */
-                            if (data.login_required) {
+                            if (data.login_required === true) {
+
+                                // Remember the product that user clicked
+                                sessionStorage.setItem(
+                                    "pending_cart_product",
+                                    productId
+                                );
+
+                                // Open Login Popup
+                                const loginModalElement = document.getElementById("loginModal");
+
+                                if (loginModalElement) {
+
+                                    const loginModal = new bootstrap.Modal(loginModalElement);
+
+                                    loginModal.show();
+
+                                } else {
+
+                                    console.error("Login popup not found!");
+
+                                }
 
                                 currentButton.disabled = false;
 
-                                if (typeof showLoginPopup === "function") {
-                                    showLoginPopup();
-                                } else {
-                                    window.location.href = "login.php";
-                                }
-
                                 return;
                             }
-
                             /*
                              * SUCCESS
                              */
@@ -1399,26 +1405,19 @@ if (!empty($products)) {
                                         '<i class="fa fa-check me-2"></i> Added';
                                 }
 
-                                currentButton.classList.add("added-cart");
-
+                                currentButton.classList.add("added-to-cart");
                                 currentButton.disabled = false;
-
-                                console.log(
-                                    "Product added successfully. Quantity:",
-                                    data.quantity
-                                );
 
                                 return;
                             }
 
-                            /*
-                             * BACKEND ERROR
-                             */
                             currentButton.disabled = false;
 
-                            console.error("Backend Error:", data);
+                            alert(
+                                data.message ||
+                                "Unable to add product to cart."
+                            );
 
-                            alert(data.message || "Unable to add product to cart.");
                         })
                         .catch(function(error) {
 
@@ -1438,6 +1437,78 @@ if (!empty($products)) {
 
         });
     </script>
+
+    <!-- LOGIN POPUP START -->
+    <div class="modal fade" id="loginModal" tabindex="-1" aria-hidden="true">
+        <!-- LOGIN POPUP START -->
+        <div id="loginPopup"
+            style="
+        display:none;
+        position:fixed;
+        top:80px;
+        right:30px;
+        width:350px;
+        background:#fff;
+        padding:25px;
+        border-radius:10px;
+        box-shadow:0 5px 25px rgba(0,0,0,0.25);
+        z-index:99999;
+    ">
+
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+
+                <h5 style="margin:0;">
+                    Login Required
+                </h5>
+
+                <button type="button"
+                    onclick="closeLoginPopup()"
+                    style="
+                border:none;
+                background:none;
+                font-size:24px;
+                cursor:pointer;
+            ">
+                    &times;
+                </button>
+
+            </div>
+
+            <p style="margin-bottom:20px;">
+                Please login to add this product to your cart.
+            </p>
+
+            <form action="login.php" method="POST">
+
+                <div class="mb-3">
+                    <label>Username</label>
+
+                    <input type="text"
+                        name="username"
+                        class="form-control"
+                        required>
+                </div>
+
+                <div class="mb-3">
+                    <label>Password</label>
+
+                    <input type="password"
+                        name="password"
+                        class="form-control"
+                        required>
+                </div>
+
+                <button type="submit"
+                    class="btn btn-primary w-100">
+                    Login
+                </button>
+
+            </form>
+
+        </div>
+        <!-- LOGIN POPUP END -->
+    </div>
+    <!-- LOGIN POPUP END -->
 </body>
 
 </html>

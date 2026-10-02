@@ -643,5 +643,30 @@ echo "<br>";
 // echo "<b>All remaining tables created successfully!</b>";
 
 
+// =========================================
+    // Order-items
+// =========================================
+
+$conn->exec("
+    CREATE TABLE IF NOT EXISTS order_items (
+        order_item_id SERIAL PRIMARY KEY,
+        order_id INT NOT NULL,
+        product_id INT NOT NULL,
+        quantity INT NOT NULL DEFAULT 1,
+        price DECIMAL(10,2) NOT NULL,
+        total DECIMAL(10,2) NOT NULL,
+
+        CONSTRAINT fk_order_items_order
+            FOREIGN KEY (order_id)
+            REFERENCES orders(order_id)
+            ON DELETE CASCADE,
+
+        CONSTRAINT fk_order_items_product
+            FOREIGN KEY (product_id)
+            REFERENCES products(product_id)
+            ON DELETE CASCADE
+    )
+");
+
 
 ?>

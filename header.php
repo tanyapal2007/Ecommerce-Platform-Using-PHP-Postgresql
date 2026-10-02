@@ -1,5 +1,4 @@
 <?php
-
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
@@ -108,96 +107,175 @@ if ($subcategory_result) {
 
             <div class="d-inline-flex align-items-center" style="height: 45px;">
 
-                <!-- Currency -->
+                <?php if (
+                    isset($_SESSION['login']) &&
+                    $_SESSION['login'] === true &&
+                    isset($_SESSION['role'])
+                ) { ?>
 
-                <div class="dropdown">
+                    <?php if ($_SESSION['role'] === 'admin') { ?>
 
-                    <a href="#"
-                        class="dropdown-toggle text-muted me-2"
-                        data-bs-toggle="dropdown">
+                        <!-- =========================
+                 ADMIN : USD + ENGLISH
+            ========================== -->
 
-                        <small>USD</small>
+                        <div class="dropdown">
 
-                    </a>
+                            <a href="#"
+                                class="dropdown-toggle text-muted me-2"
+                                data-bs-toggle="dropdown">
 
-                    <div class="dropdown-menu rounded">
+                                <small>USD</small>
 
-                        <a href="#" class="dropdown-item">Euro</a>
-                        <a href="#" class="dropdown-item">Dolar</a>
+                            </a>
 
-                    </div>
+                            <div class="dropdown-menu rounded">
 
-                </div>
+                                <a href="#" class="dropdown-item">Euro</a>
+                                <a href="#" class="dropdown-item">Dollar</a>
 
+                            </div>
 
-                <!-- Language -->
-
-                <div class="dropdown">
-
-                    <a href="#"
-                        class="dropdown-toggle text-muted mx-2"
-                        data-bs-toggle="dropdown">
-
-                        <small>English</small>
-
-                    </a>
-
-                    <div class="dropdown-menu rounded">
-
-                        <a href="#" class="dropdown-item">English</a>
-                        <a href="#" class="dropdown-item">Turkish</a>
-                        <a href="#" class="dropdown-item">Spanol</a>
-                        <a href="#" class="dropdown-item">Italiano</a>
-
-                    </div>
-
-                </div>
+                        </div>
 
 
-                <!-- Profile -->
+                        <div class="dropdown">
 
-                <div class="dropdown">
+                            <a href="#"
+                                class="dropdown-toggle text-muted mx-2"
+                                data-bs-toggle="dropdown">
 
-                    <a href="#"
-                        class="dropdown-toggle text-muted ms-2"
-                        data-bs-toggle="dropdown">
+                                <small>English</small>
 
-                        <small>
+                            </a>
 
-                            <i class="fa fa-home me-2"></i>
+                            <div class="dropdown-menu rounded">
 
-                            My Profile
+                                <a href="#" class="dropdown-item">English</a>
+                                <a href="#" class="dropdown-item">Turkish</a>
+                                <a href="#" class="dropdown-item">Spanish</a>
+                                <a href="#" class="dropdown-item">Italiano</a>
 
-                        </small>
+                            </div>
 
-                    </a>
+                        </div>
+
+                    <?php } elseif ($_SESSION['role'] === 'user') { ?>
+
+                        <!-- =========================
+                 USER : WISHLIST + CART
+            ========================== -->
+
+                        <a href="wishlist.php"
+                            class="text-muted mx-2 text-decoration-none">
+
+                            <small>
+                                <i class="fa fa-heart me-1"></i>
+                                Wishlist
+                            </small>
+
+                        </a>
 
 
-                    <div class="dropdown-menu rounded">
+                        <a href="cart.php"
+                            class="text-muted mx-2 text-decoration-none">
+
+                            <small>
+                                <i class="fa fa-shopping-cart me-1"></i>
+                                My Cart
+                            </small>
+
+                        </a>
+
+                    <?php } ?>
+
+                <?php } ?>
+
+            </div>
+
+
+            <!-- Profile -->
+
+            <div class="dropdown">
+
+                <a href="#"
+                    class="dropdown-toggle text-muted ms-2"
+                    data-bs-toggle="dropdown">
+
+                    <small>
+
+                        <i class="fa fa-home me-2"></i>
+
+                        My Profile
+
+                    </small>
+
+                </a>
+
+
+                <div class="dropdown-menu rounded">
+
+                    <?php
+
+                    if (
+                        isset($_SESSION['login']) &&
+                        $_SESSION['login'] === true &&
+                        isset($_SESSION['user_id']) &&
+                        !empty($_SESSION['user_id'])
+                    ) {
+
+                    ?>
+
+                        <!-- LOGOUT -->
+
+                        <a href="logout.php" class="dropdown-item">
+                            Log Out
+                        </a>
+
+
+                        <!-- WISHLIST -->
+
+                        <a href="#" class="dropdown-item">
+                            Wishlist
+                        </a>
+
+
+                        <!-- MY CART -->
+
+                        <a href="myaccount.php" class="dropdown-item">
+                            My Cart
+                        </a>
+
+
+                        <!-- NOTIFICATIONS -->
+
+                        <a href="#" class="dropdown-item">
+                            Notifications
+                        </a>
+
+
+                        <!-- ACCOUNT SETTINGS -->
+
+                        <a href="#" class="dropdown-item">
+                            Account Settings
+                        </a>
+
 
                         <?php
 
+                        /* ===========================
+               ADMIN ONLY
+            =========================== */
+
                         if (
-                            isset($_SESSION['login']) &&
-                            $_SESSION['login'] === true &&
-                            isset($_SESSION['user_id']) &&
-                            !empty($_SESSION['user_id'])
+                            isset($_SESSION['role']) &&
+                            $_SESSION['role'] === 'admin'
                         ) {
 
                         ?>
 
-                            <a href="logout.php" class="dropdown-item">
-                                Log Out
-                            </a>
-
-                        <?php
-
-                        } else {
-
-                        ?>
-
-                            <a href="login.php" class="dropdown-item">
-                                Login
+                            <a href="dashboard/index3.php" class="dropdown-item">
+                                Dashboard
                             </a>
 
                         <?php
@@ -206,27 +284,24 @@ if ($subcategory_result) {
 
                         ?>
 
-                        <a href="#" class="dropdown-item">
-                            Wishlist
+
+                    <?php
+
+                    } else {
+
+                    ?>
+
+                        <!-- NOT LOGGED IN -->
+
+                        <a href="login.php" class="dropdown-item">
+                            Login
                         </a>
 
-                        <a href="myaccount.php" class="dropdown-item">
-                            My Card
-                        </a>
+                    <?php
 
-                        <a href="#" class="dropdown-item">
-                            Notifications
-                        </a>
+                    }
 
-                        <a href="#" class="dropdown-item">
-                            Account Settings
-                        </a>
-
-                        <a href="dashboard/index.php" class="dropdown-item">
-                            Dashboard
-                        </a>
-
-                    </div>
+                    ?>
 
                 </div>
 
@@ -235,6 +310,8 @@ if ($subcategory_result) {
         </div>
 
     </div>
+
+</div>
 
 </div>
 
@@ -262,7 +339,7 @@ if ($subcategory_result) {
 
                     </h1>
 
-                    <img src="assets/img/logo.png" alt="Logo">
+                    <img src="assets/img/logo.jpg" alt="Logo">
 
                 </a>
 
@@ -459,7 +536,7 @@ if ($subcategory_result) {
 
                     </h1>
 
-                    <img src="assets/img/logo.png" alt="Logo">
+                    <img src="assets/img/logo.jpg" alt="Logo">
 
                 </a>
 

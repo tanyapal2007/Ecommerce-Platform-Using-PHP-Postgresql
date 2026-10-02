@@ -9,7 +9,7 @@
 
 #spinner.show {
     transition: opacity .5s ease-out, visibility 0s linear 0s;
-    visibility: visible;
+    /* visibility: visible; */
     opacity: 1;
 }
 
@@ -1048,4 +1048,131 @@
 
 .login-popup-cancel-btn:hover {
     color: #333;
+}
+
+
+
+.address-card {
+    background: #ffffff;
+    border: 1px solid #e5e5e5;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    padding: 20px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+.address-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-bottom: 15px;
+    border-bottom: 1px solid #eeeeee;
+}
+
+.address-type {
+    display: inline-block;
+    padding: 6px 12px;
+    border-radius: 4px;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.address-type i {
+    margin-right: 5px;
+}
+
+.address-type.home {
+    background: #eaf2ff;
+    color: #337ab7;
+}
+
+.address-type.office {
+    background: #e8f7f8;
+    color: #31708f;
+}
+
+.address-type.other {
+    background: #f2f2f2;
+    color: #666666;
+}
+
+.default-badge {
+    background: #dff0d8;
+    color: #3c763d;
+    padding: 6px 10px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.address-details {
+    padding: 18px 5px;
+}
+
+.address-details h4 {
+    margin-top: 0;
+    margin-bottom: 10px;
+    font-size: 18px;
+    font-weight: 600;
+}
+
+.phone-number {
+    color: #777777;
+    margin-bottom: 15px;
+    font-size: 14px;
+}
+
+.phone-number i {
+    margin-right: 8px;
+}
+
+.full-address {
+    display: flex;
+    align-items: flex-start;
+    color: #555555;
+    line-height: 1.8;
+    font-size: 14px;
+}
+
+.full-address>i {
+    margin-top: 5px;
+    margin-right: 10px;
+    color: #888888;
+}
+
+.address-actions {
+    border-top: 1px solid #eeeeee;
+    padding-top: 15px;
+}
+
+.address-actions .btn {
+    margin-right: 8px;
+}
+
+.address-actions .btn i {
+    margin-right: 5px;
+}
+
+.no-address {
+    text-align: center;
+    padding: 60px 20px;
+    border: 1px dashed #d9d9d9;
+    border-radius: 8px;
+    background: #fafafa;
+}
+
+.no-address-icon {
+    font-size: 45px;
+    color: #cccccc;
+    margin-bottom: 15px;
+}
+
+.no-address h4 {
+    margin-bottom: 10px;
+    font-weight: 600;
+}
+
+.no-address p {
+    color: #999999;
+    margin-bottom: 5px;
 }

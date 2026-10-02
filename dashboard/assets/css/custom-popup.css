@@ -199,3 +199,67 @@
     }
 
 }
+
+.admin-profile-section {
+    padding: 40px 20px;
+    background: #f5f6fa;
+    min-height: 80vh;
+}
+
+.admin-profile-card {
+    border-radius: 15px;
+    overflow: hidden;
+}
+
+.profile-header {
+    padding: 35px 20px;
+    background: #ffffff;
+    border-bottom: 1px solid #eeeeee;
+}
+
+.profile-image-wrapper {
+    display: flex;
+    justify-content: center;
+}
+
+.profile-image,
+.profile-default-image {
+    width: 110px;
+    height: 110px;
+    border-radius: 50%;
+}
+
+.profile-image {
+    object-fit: cover;
+}
+
+.profile-default-image {
+    background: #0d6efd;
+    color: white;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    font-size: 45px;
+}
+
+.profile-detail {
+    background: #f8f9fa;
+    padding: 18px;
+    border-radius: 10px;
+}
+
+.profile-detail label {
+    display: block;
+    font-size: 14px;
+    font-weight: 600;
+    color: #777;
+    margin-bottom: 6px;
+}
+
+.profile-detail p {
+    margin: 0;
+    color: #222;
+    font-size: 16px;
+}
